@@ -90,8 +90,6 @@ jobs:
     name: SonarCloud Check
     needs: unit-tests
     runs-on: ubuntu-latest
-    env:
-      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || github.repository_owner }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -117,6 +115,13 @@ jobs:
         id: sonar-meta
         shell: bash
         run: |
+          if [ -n "${{ vars.SONAR_ORGANIZATION }}" ]; then
+            org="${{ vars.SONAR_ORGANIZATION }}"
+            echo "organization=${org,,}" >> "$GITHUB_OUTPUT"
+          else
+            echo "organization=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          fi
+
           if [ -n "${{ vars.SONAR_PROJECT_KEY }}" ]; then
             echo "project_key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"
           else
@@ -135,10 +140,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
-          ./gradlew --no-daemon test jacocoTestReport sonarqube
+          ./gradlew --no-daemon test jacocoTestReport sonar
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
           -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+          -Dsonar.organization=${{ steps.sonar-meta.outputs.organization }}
           -Dsonar.projectKey=${{ steps.sonar-meta.outputs.project_key }}
           -Dsonar.java.binaries=**/build/classes
           -Dsonar.coverage.jacoco.xmlReportPaths=**/build/reports/jacoco/test/jacocoTestReport.xml

@@ -1,0 +1,12 @@
+.git
+.github
+.gradle
+.idea
+**/build
+!cli/build/
+!cli/build/libs/
+!cli/build/libs/*-all.jar
+**/.DS_Store
+**/node_modules
+*.iml
+*.log

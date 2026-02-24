@@ -1,0 +1,239 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  spotless-check:
+    name: Spotless Check Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run spotless check
+        run: ./gradlew --no-daemon spotlessCheck
+
+  compile:
+    name: Compile
+    needs: spotless-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Compile sources and tests
+        run: ./gradlew --no-daemon compileJava compileTestJava
+
+  unit-tests:
+    name: Unit Tests
+    needs: compile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew --no-daemon test
+
+  sonarcloud-check:
+    name: SonarCloud Check
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    env:
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || github.repository_owner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Generate coverage reports
+        run: ./gradlew --no-daemon test jacocoTestReport
+
+      - name: Resolve Sonar project key
+        id: sonar-meta
+        shell: bash
+        run: |
+          if [ -n "${{ vars.SONAR_PROJECT_KEY }}" ]; then
+            echo "project_key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "project_key=${GITHUB_REPOSITORY/\//_}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: >
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ steps.sonar-meta.outputs.project_key }}
+            -Dsonar.java.binaries=**/build/classes
+            -Dsonar.coverage.jacoco.xmlReportPaths=**/build/reports/jacoco/test/jacocoTestReport.xml
+
+      - name: SonarCloud Quality Gate
+        if: ${{ vars.SONAR_ENFORCE_QUALITY_GATE == 'true' }}
+        uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: SonarCloud Quality Gate (non-blocking notice)
+        if: ${{ vars.SONAR_ENFORCE_QUALITY_GATE != 'true' }}
+        run: echo "Quality Gate enforcement is disabled. Set repository variable SONAR_ENFORCE_QUALITY_GATE=true to block CI on gate failures."
+
+  build:
+    name: Build
+    needs: sonarcloud-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build artifacts
+        run: ./gradlew --no-daemon build -x test :agent-app:shadowJar
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: architrace-artifacts
+          path: |
+            agent-app/build/libs/*.jar
+            **/build/libs/*.jar
+
+  native-image-docker:
+    name: Native Image (Docker)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build GraalVM native image in Docker
+        run: docker build -f Dockerfile.native -t architrace-native:ci .
+
+      - name: Export native binary from Docker image
+        run: |
+          cid=$(docker create architrace-native:ci)
+          mkdir -p native-dist
+          docker cp "$cid:/app/architrace" native-dist/architrace
+          docker rm "$cid"
+          chmod +x native-dist/architrace
+
+      - name: Upload native binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: architrace-native-linux
+          path: native-dist/architrace
+
+
+  cd-release:
+    name: CD Release
+    needs:
+      - build
+      - native-image-docker
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build release fat jar
+        run: ./gradlew --no-daemon :agent-app:shadowJar
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            agent-app/build/libs/agent-app-*-all.jar

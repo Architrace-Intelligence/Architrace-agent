@@ -108,7 +108,7 @@ configurations.all {
 
 sonar {
     properties {
-        property "sonar.projectKey", "Architrace-Intelligence_Architrace-Control-Plane"
+        property "sonar.projectKey", "Architrace-Intelligence_Architrace-agent"
         property "sonar.organization", "architrace-intelligence"
     }
 }

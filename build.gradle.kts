@@ -108,8 +108,9 @@ configurations.all {
 
 sonar {
     properties {
-        property("sonar.projectKey", "Architrace-Intelligence_Architrace-agent")
+        property("sonar.projectKey", "architrace-intelligence_architrace-agent")
         property("sonar.organization", "architrace-intelligence")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
 

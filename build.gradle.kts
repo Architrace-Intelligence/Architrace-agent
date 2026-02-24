@@ -108,8 +108,7 @@ configurations.all {
 
 sonar {
     properties {
-        property("sonar.projectKey", "godmarch33_Architrace")
-        property("sonar.organization", "godmarch33")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
 
@@ -122,4 +121,3 @@ graalvmNative {
         }
     }
 }
-

@@ -10,7 +10,7 @@ RUN chmod +x ./gradlew \
     && native-image \
       --no-fallback \
       --initialize-at-run-time=io.grpc.netty.shaded.io.netty.channel.ChannelHandlerMask \
-      --initialize-at-build-time=ch.qos.logback.classic.Logger \
+      --initialize-at-build-time=ch.qos.logback.classic,ch.qos.logback.core,org.slf4j \
       -jar agent-app/build/libs/agent-app-*-all.jar \
       architrace
 

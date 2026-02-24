@@ -1,0 +1,83 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-validation:
+    name: Spotless + Tests + Sonar + Build Jar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Resolve Sonar metadata
+        id: sonar-meta
+        shell: bash
+        run: |
+          if [ -n "${{ vars.SONAR_ORGANIZATION }}" ]; then
+            org="${{ vars.SONAR_ORGANIZATION }}"
+            echo "organization=${org,,}" >> "$GITHUB_OUTPUT"
+          else
+            echo "organization=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -n "${{ vars.SONAR_PROJECT_KEY }}" ]; then
+            echo "project_key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "project_key=${GITHUB_REPOSITORY/\//_}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate SonarCloud configuration
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "::error::Missing SONAR_TOKEN secret. Add it in GitHub Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Run spotless and unit tests
+        run: ./gradlew --no-daemon spotlessCheck test jacocoTestReport
+
+      - name: SonarCloud analysis for PR
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >
+          ./gradlew --no-daemon sonar
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.organization=${{ steps.sonar-meta.outputs.organization }}
+          -Dsonar.projectKey=${{ steps.sonar-meta.outputs.project_key }}
+          -Dsonar.java.binaries=**/build/classes
+          -Dsonar.coverage.jacoco.xmlReportPaths=**/build/reports/jacoco/test/jacocoTestReport.xml
+
+      - name: Build jar artifact
+        run: ./gradlew --no-daemon :agent-app:shadowJar
+
+      - name: Upload PR jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-agent-app-jar
+          path: agent-app/build/libs/*.jar

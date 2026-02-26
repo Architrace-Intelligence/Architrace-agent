@@ -24,7 +24,6 @@ public final class AgentConfigLoader {
   public AgentConfig load(Path configPath) {
     Objects.requireNonNull(configPath, "configPath is required");
     if (!Files.exists(configPath)) {
-//      throw new CommandLine.ParameterException(new CommandLine(this), "Config file does not exist: %s".formatted(configPath));
       throw new IllegalArgumentException("Config file does not exist: " + configPath);
     }
 

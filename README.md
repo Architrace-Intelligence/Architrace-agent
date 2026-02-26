@@ -1,5 +1,5 @@
 # Architrace
-[![CI/CD](https://github.com/godmarch33/ArchiTrace/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/godmarch33/ArchiTrace/actions/workflows/ci-cd.yml)
+[![CI/CD](https://github.com/Architrace-Intelligence/Architrace-agent/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Architrace-Intelligence/Architrace-agent/actions/workflows/ci-cd.yml)
 
 Architrace agent with embedded control-plane flow and OTLP trace receiver.
 

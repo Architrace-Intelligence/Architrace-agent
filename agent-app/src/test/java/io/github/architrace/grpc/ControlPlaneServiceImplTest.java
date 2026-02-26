@@ -4,7 +4,6 @@
  */
 package io.github.architrace.grpc;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.architrace.controlplane.ControlPlaneRegistry;
 import io.github.architrace.grpc.proto.AgentEvent;
@@ -19,6 +18,8 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlPlaneServiceImplTest {
 
@@ -48,29 +49,29 @@ class ControlPlaneServiceImplTest {
     RecordingObserver<ControlPlaneEvent> responseObserver = new RecordingObserver<>();
     StreamObserver<AgentEvent> requestObserver = sut.connect(responseObserver);
 
-      requestObserver.onNext(
-          AgentEvent.newBuilder()
-              .setRegister(AgentRegister.newBuilder().setAgentName(AGENT_A).build())
-              .build());
+    requestObserver.onNext(
+        AgentEvent.newBuilder()
+            .setRegister(AgentRegister.newBuilder().setAgentName(AGENT_A).build())
+            .build());
 
-      assertThat(responseObserver.values.stream().anyMatch(ControlPlaneEvent::hasConfigUpdate)).isTrue();
+    assertThat(responseObserver.values.stream().anyMatch(ControlPlaneEvent::hasConfigUpdate)).isTrue();
 
-      requestObserver.onNext(
-          AgentEvent.newBuilder()
-              .setPong(
-                  AgentPong.newBuilder()
-                      .setAgentName(AGENT_A)
-                      .setPingId(PING_ID)
-                      .setSentAtEpochMs(PING_SENT_AT_EPOCH_MS)
-                      .build())
-              .build());
+    requestObserver.onNext(
+        AgentEvent.newBuilder()
+            .setPong(
+                AgentPong.newBuilder()
+                    .setAgentName(AGENT_A)
+                    .setPingId(PING_ID)
+                    .setSentAtEpochMs(PING_SENT_AT_EPOCH_MS)
+                    .build())
+            .build());
 
-      ControlPlaneRegistry.HealthState health = registry.health(AGENT_A, HEALTH_LIVE_THRESHOLD_MS);
-      assertThat(health.live()).isTrue();
-      assertThat(health.lastSeenEpochMs()).isGreaterThanOrEqualTo(PING_SENT_AT_EPOCH_MS);
+    ControlPlaneRegistry.HealthState health = registry.health(AGENT_A, HEALTH_LIVE_THRESHOLD_MS);
+    assertThat(health.live()).isTrue();
+    assertThat(health.lastSeenEpochMs()).isGreaterThanOrEqualTo(PING_SENT_AT_EPOCH_MS);
 
-      requestObserver.onCompleted();
-      assertThat(responseObserver.completed).isTrue();
+    requestObserver.onCompleted();
+    assertThat(responseObserver.completed).isTrue();
     assertThat(registry.health(AGENT_A, HEALTH_LIVE_THRESHOLD_MS).live()).isFalse();
   }
 
@@ -79,11 +80,11 @@ class ControlPlaneServiceImplTest {
     RecordingObserver<ControlPlaneEvent> responseObserver = new RecordingObserver<>();
     StreamObserver<AgentEvent> requestObserver = sut.connect(responseObserver);
 
-      requestObserver.onNext(
-          AgentEvent.newBuilder()
-              .setRegister(AgentRegister.newBuilder().setAgentName(AGENT_B).build())
-              .build());
-      requestObserver.onError(new RuntimeException("boom"));
+    requestObserver.onNext(
+        AgentEvent.newBuilder()
+            .setRegister(AgentRegister.newBuilder().setAgentName(AGENT_B).build())
+            .build());
+    requestObserver.onError(new RuntimeException("boom"));
 
     assertThat(registry.health(AGENT_B, HEALTH_LIVE_THRESHOLD_MS).live()).isFalse();
   }
@@ -102,9 +103,9 @@ class ControlPlaneServiceImplTest {
   void getAgentHealthShouldReturnRegistryHealth() {
     RecordingObserver<ControlPlaneEvent> connectObserver = new RecordingObserver<>();
     sut.connect(connectObserver).onNext(
-          AgentEvent.newBuilder()
-              .setRegister(AgentRegister.newBuilder().setAgentName(AGENT_A).build())
-              .build());
+        AgentEvent.newBuilder()
+            .setRegister(AgentRegister.newBuilder().setAgentName(AGENT_A).build())
+            .build());
     RecordingObserver<AgentHealthResponse> responseObserver = new RecordingObserver<>();
     AgentHealthRequest request = AgentHealthRequest.newBuilder().setAgentName(AGENT_A).build();
 
@@ -119,7 +120,6 @@ class ControlPlaneServiceImplTest {
 
   private static final class RecordingObserver<T> implements StreamObserver<T> {
     private final List<T> values = new ArrayList<>();
-    private Throwable error;
     private boolean completed;
 
     @Override
@@ -129,7 +129,7 @@ class ControlPlaneServiceImplTest {
 
     @Override
     public void onError(Throwable throwable) {
-      this.error = throwable;
+      // No-op for tests; failure path is asserted through registry state.
     }
 
     @Override

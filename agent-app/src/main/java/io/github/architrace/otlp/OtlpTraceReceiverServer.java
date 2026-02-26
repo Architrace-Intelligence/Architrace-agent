@@ -43,7 +43,7 @@ public class OtlpTraceReceiverServer implements AutoCloseable {
       if (!server.awaitTermination(3, TimeUnit.SECONDS)) {
         server.shutdownNow();
       }
-    } catch (InterruptedException e) {
+    } catch (InterruptedException _) {
       Thread.currentThread().interrupt();
       server.shutdownNow();
     }

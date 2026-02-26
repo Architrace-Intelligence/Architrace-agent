@@ -4,16 +4,18 @@
  */
 package io.github.architrace.grpc;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.architrace.grpc.proto.AgentHealthRequest;
 import io.github.architrace.grpc.proto.ControlPlaneServiceGrpc;
 import io.github.architrace.testsupport.TestDataProvider;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlPlaneGrpcServerTest {
 
@@ -21,8 +23,9 @@ class ControlPlaneGrpcServerTest {
   private static final String MISSING_AGENT_NAME = "missing";
   private static final long HEALTH_DEADLINE_SECONDS = 3L;
   private static final long CHANNEL_SHUTDOWN_TIMEOUT_SECONDS = 2L;
-  private static final long AWAIT_THREAD_INTERRUPT_DELAY_MS = 150L;
   private static final long AWAIT_THREAD_JOIN_TIMEOUT_MS = 1_000L;
+  private static final int THREAD_READY_COUNT = 1;
+  private static final long THREAD_READY_TIMEOUT_SECONDS = 1L;
 
   @Test
   void serverShouldStartServeHealthAndHandleInterruptedAwait() throws Exception {
@@ -44,17 +47,19 @@ class ControlPlaneGrpcServerTest {
       }
 
       AtomicReference<Throwable> awaitFailure = new AtomicReference<>();
+      CountDownLatch awaitStarted = new CountDownLatch(THREAD_READY_COUNT);
       Thread awaitThread =
           new Thread(
               () -> {
-                  try {
+                awaitStarted.countDown();
+                try {
                   sut.await();
                 } catch (Throwable throwable) {
                   awaitFailure.set(throwable);
                 }
               });
       awaitThread.start();
-      Thread.sleep(AWAIT_THREAD_INTERRUPT_DELAY_MS);
+      assertThat(awaitStarted.await(THREAD_READY_TIMEOUT_SECONDS, TimeUnit.SECONDS)).isTrue();
       awaitThread.interrupt();
       awaitThread.join(AWAIT_THREAD_JOIN_TIMEOUT_MS);
 

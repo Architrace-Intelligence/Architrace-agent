@@ -24,11 +24,9 @@ public class ControlPlaneRegistry {
         new AgentSession(
             responseObserver,
             System.currentTimeMillis(),
-            System.currentTimeMillis(),
             new AtomicLong(0)));
 
     sendConfig(
-        agentName,
         ConfigUpdate.newBuilder()
             .setVersion(nextVersion(agentName))
             .putEntries("agent.mode", "managed")
@@ -80,7 +78,6 @@ public class ControlPlaneRegistry {
 
       if ((pingId % 3) == 0) {
         sendConfig(
-            agentName,
             ConfigUpdate.newBuilder()
                 .setVersion(nextVersion(agentName))
                 .putEntries("control.lastPingId", Long.toString(pingId))
@@ -96,8 +93,7 @@ public class ControlPlaneRegistry {
     return Long.toString(seq.incrementAndGet());
   }
 
-  private void sendConfig(
-      String agentName, ConfigUpdate update, StreamObserver<ControlPlaneEvent> responseObserver) {
+  private void sendConfig(ConfigUpdate update, StreamObserver<ControlPlaneEvent> responseObserver) {
     responseObserver.onNext(ControlPlaneEvent.newBuilder().setConfigUpdate(update).build());
   }
 
@@ -107,17 +103,14 @@ public class ControlPlaneRegistry {
   private static final class AgentSession {
     private final StreamObserver<ControlPlaneEvent> responseObserver;
     private volatile long lastSeenEpochMs;
-    private volatile long connectedAtEpochMs;
     private final AtomicLong lastPongId;
 
     private AgentSession(
         StreamObserver<ControlPlaneEvent> responseObserver,
         long lastSeenEpochMs,
-        long connectedAtEpochMs,
         AtomicLong lastPongId) {
       this.responseObserver = responseObserver;
       this.lastSeenEpochMs = lastSeenEpochMs;
-      this.connectedAtEpochMs = connectedAtEpochMs;
       this.lastPongId = lastPongId;
     }
   }

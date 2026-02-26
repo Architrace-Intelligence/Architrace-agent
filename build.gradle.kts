@@ -117,6 +117,8 @@ tasks.register<JavaExec>("runArchitrace") {
 }
 
 tasks.register("buildRuntime") {
+    group = "build"
+    description = "Build runtime-related artifacts."
 }
 
 configurations.all {

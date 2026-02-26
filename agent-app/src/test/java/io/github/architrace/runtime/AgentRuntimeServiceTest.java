@@ -4,8 +4,6 @@
  */
 package io.github.architrace.runtime;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.architrace.testsupport.TestDataProvider;
 import java.lang.reflect.Method;
@@ -13,8 +11,11 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AgentRuntimeServiceTest {
 

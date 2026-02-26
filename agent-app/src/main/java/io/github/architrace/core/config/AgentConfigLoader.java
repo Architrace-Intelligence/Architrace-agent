@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
-import picocli.CommandLine;
 
 public final class AgentConfigLoader {
 

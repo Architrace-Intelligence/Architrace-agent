@@ -14,6 +14,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -28,8 +29,8 @@ public class AgentControlPlaneClient implements AutoCloseable {
   private final ManagedChannel channel;
   private final CountDownLatch shutdownSignal = new CountDownLatch(1);
 
-  private volatile StreamObserver<AgentEvent> requestObserver;
-  private volatile Throwable streamFailure;
+  private final AtomicReference<StreamObserver<AgentEvent>> requestObserver = new AtomicReference<>();
+  private final AtomicReference<Throwable> streamFailure = new AtomicReference<>();
 
   public AgentControlPlaneClient(String server, String agentName, AgentConfigApplier configApplier) {
     this.agentName = agentName;
@@ -40,9 +41,10 @@ public class AgentControlPlaneClient implements AutoCloseable {
 
   public void start() {
     ControlPlaneServiceGrpc.ControlPlaneServiceStub stub = ControlPlaneServiceGrpc.newStub(channel);
-    requestObserver = stub.connect(new ControlPlaneInboundObserver());
+    StreamObserver<AgentEvent> observer = stub.connect(new ControlPlaneInboundObserver());
+    requestObserver.set(observer);
 
-    requestObserver.onNext(
+    observer.onNext(
         AgentEvent.newBuilder()
             .setRegister(AgentRegister.newBuilder().setAgentName(agentName).build())
             .build());
@@ -50,14 +52,15 @@ public class AgentControlPlaneClient implements AutoCloseable {
 
   public void await() throws InterruptedException {
     shutdownSignal.await();
-    if (streamFailure != null) {
-      throw new IllegalStateException("Control-plane stream failed.", streamFailure);
+    Throwable failure = streamFailure.get();
+    if (failure != null) {
+      throw new IllegalStateException("Control-plane stream failed.", failure);
     }
   }
 
   @Override
   public void close() {
-    StreamObserver<AgentEvent> observer = requestObserver;
+    StreamObserver<AgentEvent> observer = requestObserver.get();
     if (observer != null) {
       observer.onCompleted();
     }
@@ -65,28 +68,28 @@ public class AgentControlPlaneClient implements AutoCloseable {
     channel.shutdownNow();
     try {
       channel.awaitTermination(2, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
+    } catch (InterruptedException _) {
       Thread.currentThread().interrupt();
     }
   }
 
-  private void sendPong(long pingId) {
-    StreamObserver<AgentEvent> observer = requestObserver;
-    if (observer == null) {
-      return;
-    }
-    observer.onNext(
-        AgentEvent.newBuilder()
-            .setPong(
-                AgentPong.newBuilder()
-                    .setAgentName(agentName)
-                    .setPingId(pingId)
-                    .setSentAtEpochMs(System.currentTimeMillis())
-                    .build())
-            .build());
-  }
-
   private final class ControlPlaneInboundObserver implements StreamObserver<ControlPlaneEvent> {
+    private void sendPong(long pingId) {
+      StreamObserver<AgentEvent> observer = requestObserver.get();
+      if (observer == null) {
+        return;
+      }
+      observer.onNext(
+          AgentEvent.newBuilder()
+              .setPong(
+                  AgentPong.newBuilder()
+                      .setAgentName(agentName)
+                      .setPingId(pingId)
+                      .setSentAtEpochMs(System.currentTimeMillis())
+                      .build())
+              .build());
+    }
+
     @Override
     public void onNext(ControlPlaneEvent message) {
       if (message.hasPing()) {
@@ -100,7 +103,7 @@ public class AgentControlPlaneClient implements AutoCloseable {
 
     @Override
     public void onError(Throwable throwable) {
-      streamFailure = throwable;
+      streamFailure.set(throwable);
       log.error("Control-plane stream failed for agent '{}'", agentName, throwable);
       shutdownSignal.countDown();
     }

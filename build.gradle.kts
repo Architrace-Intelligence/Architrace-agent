@@ -5,8 +5,8 @@ plugins {
     `java-library`
     jacoco
     alias(libs.plugins.spotless) apply false
-    id("org.sonarqube") version "7.1.0.6387"
-    id("org.graalvm.buildtools.native") version "0.10.2"
+    alias(libs.plugins.sonarqube)
+    alias(libs.plugins.graalvm.native)
 }
 
 allprojects {
@@ -108,7 +108,7 @@ configurations.all {
 
 sonar {
     properties {
-        property("sonar.projectKey", "architrace-intelligence_architrace-agent")
+        property("sonar.projectKey", "Architrace-Intelligence_Architrace-agent")
         property("sonar.organization", "architrace-intelligence")
         property("sonar.host.url", "https://sonarcloud.io")
     }

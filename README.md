@@ -1,5 +1,13 @@
 # Architrace
 [![CI/CD](https://github.com/Architrace-Intelligence/Architrace-agent/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Architrace-Intelligence/Architrace-agent/actions/workflows/ci-cd.yml)
+[![gradle pass](https://img.shields.io/github/actions/workflow/status/Architrace-Intelligence/Architrace-agent/ci-cd.yml?branch=main&label=gradle%20pass)](https://github.com/Architrace-Intelligence/Architrace-agent/actions/workflows/ci-cd.yml)
+[![maintainability](https://sonarcloud.io/api/project_badges/measure?project=Architrace-Intelligence_Architrace-agent&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Architrace-Intelligence_Architrace-agent)
+[![lines of code](https://sonarcloud.io/api/project_badges/measure?project=Architrace-Intelligence_Architrace-agent&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=Architrace-Intelligence_Architrace-agent)
+[![licence](https://img.shields.io/github/license/Architrace-Intelligence/Architrace-agent?label=licence)](#license)
+[![code quality](https://sonarcloud.io/api/project_badges/measure?project=Architrace-Intelligence_Architrace-agent&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Architrace-Intelligence_Architrace-agent)
+[![code coverage](https://sonarcloud.io/api/project_badges/measure?project=Architrace-Intelligence_Architrace-agent&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Architrace-Intelligence_Architrace-agent)
+[![snyk security](https://snyk.io/test/github/Architrace-Intelligence/Architrace-agent/badge.svg)](https://snyk.io/test/github/Architrace-Intelligence/Architrace-agent)
+[![code smells](https://sonarcloud.io/api/project_badges/measure?project=Architrace-Intelligence_Architrace-agent&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Architrace-Intelligence_Architrace-agent)
 
 Architrace agent with embedded control-plane flow and OTLP trace receiver.
 
@@ -79,6 +87,20 @@ Run all tests:
 ```bash
 ./gradlew test
 ```
+
+## Snyk Security Monitoring
+- CI/CD includes a `Snyk Security Monitor` job in `.github/workflows/ci-cd.yml`.
+- Required GitHub secret: `SNYK_TOKEN`.
+- Optional GitHub variable: `SNYK_ORG` (if you want to monitor under a specific Snyk organization).
+- The pipeline runs:
+```bash
+snyk monitor --all-projects
+```
+- The `snyk security` badge is live and reads status from the Snyk project page for this repository.
+
+## Badge Data Sources
+- SonarCloud badges (`maintainability`, `lines of code`, `code quality`, `code coverage`, `code smells`) pull live measures from project key `Architrace-Intelligence_Architrace-agent`.
+- GitHub badges (`gradle pass`, `licence`) pull live workflow/license data from this repository.
 
 Run OTLP receiver integration test only:
 ```bash

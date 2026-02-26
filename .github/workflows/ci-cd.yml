@@ -81,9 +81,48 @@ jobs:
       - name: Run tests
         run: ./gradlew --no-daemon test
 
+  snyk-monitor:
+    name: Snyk Security Monitor
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Validate Snyk configuration
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.SNYK_TOKEN }}" ]; then
+            echo "::error::Missing SNYK_TOKEN secret. Add it in GitHub Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Snyk monitor snapshot
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        shell: bash
+        run: |
+          if [ -n "${{ vars.SNYK_ORG }}" ]; then
+            snyk monitor --all-projects --org="${{ vars.SNYK_ORG }}"
+          else
+            snyk monitor --all-projects
+          fi
+
   sonarcloud-check:
     name: SonarCloud Check
-    needs: unit-tests
+    needs: snyk-monitor
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

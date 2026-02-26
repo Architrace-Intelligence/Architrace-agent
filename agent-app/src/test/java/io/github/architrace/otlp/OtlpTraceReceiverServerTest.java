@@ -4,10 +4,11 @@
  */
 package io.github.architrace.otlp;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.architrace.testsupport.TestDataProvider;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class OtlpTraceReceiverServerTest {
 

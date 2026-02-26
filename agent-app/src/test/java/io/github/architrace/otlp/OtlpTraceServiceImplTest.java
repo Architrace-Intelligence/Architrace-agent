@@ -4,17 +4,18 @@
  */
 package io.github.architrace.otlp;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.architrace.testsupport.TestDataProvider;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class OtlpTraceServiceImplTest {
@@ -46,6 +47,7 @@ class OtlpTraceServiceImplTest {
 
     @Override
     public void onError(Throwable throwable) {
+      // No-op for tests; this scenario verifies happy-path export only.
     }
 
     @Override

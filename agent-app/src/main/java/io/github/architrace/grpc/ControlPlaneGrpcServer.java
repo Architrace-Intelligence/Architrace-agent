@@ -8,7 +8,7 @@ import io.github.architrace.controlplane.ControlPlaneRegistry;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.protobuf.services.HealthStatusManager;
-import io.grpc.protobuf.services.ProtoReflectionService;
+import io.grpc.protobuf.services.ProtoReflectionServiceV1;
 import io.grpc.health.v1.HealthCheckResponse;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +29,7 @@ public class ControlPlaneGrpcServer implements AutoCloseable {
         ServerBuilder.forPort(port)
             .addService(controlPlaneService)
             .addService(healthStatusManager.getHealthService())
-            .addService(ProtoReflectionService.newInstance())
+            .addService(ProtoReflectionServiceV1.newInstance())
             .build();
   }
 
@@ -58,7 +58,7 @@ public class ControlPlaneGrpcServer implements AutoCloseable {
       if (!server.awaitTermination(3, TimeUnit.SECONDS)) {
         server.shutdownNow();
       }
-    } catch (InterruptedException e) {
+    } catch (InterruptedException _) {
       Thread.currentThread().interrupt();
       server.shutdownNow();
     }

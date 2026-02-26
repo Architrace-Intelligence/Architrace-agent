@@ -45,9 +45,8 @@ public class MainApp implements Runnable {
     });
 
     cmd.setParameterExceptionHandler((ex, args1) -> {
-      System.err.println("ERROR: " + ex.getMessage());
-      ex.printStackTrace();
-      ex.getCommandLine().usage(System.err);
+      log.error("Parameter parsing failed: {}", ex.getMessage(), ex);
+      ex.getCommandLine().usage(ex.getCommandLine().getErr());
       return CommandLine.ExitCode.SOFTWARE;
     });
 

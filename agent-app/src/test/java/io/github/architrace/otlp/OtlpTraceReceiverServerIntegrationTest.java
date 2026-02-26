@@ -4,7 +4,6 @@
  */
 package io.github.architrace.otlp;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -16,6 +15,8 @@ import io.opentelemetry.proto.collector.trace.v1.TraceServiceGrpc;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class OtlpTraceReceiverServerIntegrationTest {
 

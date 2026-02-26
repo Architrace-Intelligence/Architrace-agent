@@ -4,18 +4,19 @@
  */
 package io.github.architrace.grpc;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.architrace.grpc.proto.AgentHealthRequest;
 import io.github.architrace.grpc.proto.ControlPlaneServiceGrpc;
 import io.github.architrace.testsupport.TestDataProvider;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class AgentControlPlaneClientIntegrationTest {
 

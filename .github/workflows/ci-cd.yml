@@ -9,13 +9,12 @@ on:
       - "v*"
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   spotless-check:
     name: Spotless Check Verification
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,6 +38,8 @@ jobs:
     name: Compile
     needs: spotless-check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,6 +63,8 @@ jobs:
     name: Unit Tests
     needs: compile
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -85,6 +88,8 @@ jobs:
     name: Snyk Security Monitor
     needs: unit-tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,6 +129,8 @@ jobs:
     name: SonarCloud Check
     needs: unit-tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -197,6 +204,8 @@ jobs:
     name: Build
     needs: sonarcloud-check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4

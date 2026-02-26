@@ -4,16 +4,17 @@
  */
 package io.github.architrace.controlplane;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.architrace.grpc.AgentControlPlaneClient;
 import io.github.architrace.grpc.ControlPlaneGrpcServer;
 import io.github.architrace.testsupport.TestDataProvider;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlPlaneBootstrapServiceTest {
 
@@ -41,6 +42,7 @@ class ControlPlaneBootstrapServiceTest {
                 entriesRef.set(entries);
                 applied.countDown();
               })) {
+        assertThat(client).isNotNull();
         assertThat(applied.await(CONFIG_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)).isTrue();
         assertThat(entriesRef.get()).containsEntry("agent.mode", "managed");
       }

@@ -43,6 +43,10 @@ public class AgentRuntimeService {
     try (OtlpTraceReceiverServer otlpReceiver = startOtlpReceiver();
         AutoCloseable embeddedControlPlane = maybeStartEmbeddedControlPlane(controlPlaneAddress);
         AgentControlPlaneClient client = bootstrapService.bootstrap(config, this::applyRemoteConfig)) {
+      log.debug(
+          "Runtime resources initialized: receiver='{}', embeddedControlPlane='{}'.",
+          otlpReceiver.getClass().getSimpleName(),
+          embeddedControlPlane.getClass().getSimpleName());
       log.info(
           "Agent '{}' started gRPC stream to control plane '{}'.",
           config.agent().name(),

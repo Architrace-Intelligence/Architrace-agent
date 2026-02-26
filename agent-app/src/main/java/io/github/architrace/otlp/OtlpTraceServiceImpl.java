@@ -19,12 +19,15 @@ public class OtlpTraceServiceImpl extends TraceServiceGrpc.TraceServiceImplBase 
   public void export(
       ExportTraceServiceRequest request,
       StreamObserver<ExportTraceServiceResponse> responseObserver) {
-    long spanCount =
-        request.getResourceSpansList().stream()
-            .flatMap(resourceSpans -> resourceSpans.getScopeSpansList().stream())
-            .flatMap(scopeSpans -> scopeSpans.getSpansList().stream())
-            .peek(span -> log.info("span {}", span))
-            .count();
+    long spanCount = 0L;
+    for (var resourceSpans : request.getResourceSpansList()) {
+      for (var scopeSpans : resourceSpans.getScopeSpansList()) {
+        for (var span : scopeSpans.getSpansList()) {
+          log.info("span {}", span);
+          spanCount++;
+        }
+      }
+    }
 
     log.info("OTLP export received on receiver: {} span(s).", spanCount);
     responseObserver.onNext(ExportTraceServiceResponse.newBuilder().build());

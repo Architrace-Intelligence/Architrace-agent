@@ -56,6 +56,15 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Verify dependency metadata entries
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="gradle/verification-metadata.xml"
+          echo "Checking ${file} for CI-sensitive entries..."
+          grep -n "jackson-base-2.13.5.pom" "$file"
+          grep -n "junit-bom-5.11.0.module" "$file"
+
       - name: Compile sources and tests
         run: ./gradlew --no-daemon compileJava compileTestJava
 

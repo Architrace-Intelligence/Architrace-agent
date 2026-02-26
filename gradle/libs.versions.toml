@@ -17,6 +17,7 @@ sonarqube = "7.1.0.6387"
 graalvm-native = "0.10.2"
 protobuf-gradle-plugin = "0.9.4"
 javax-annotation = "1.3.2"
+assertj = "3.27.4"
 
 [libraries]
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
@@ -42,6 +43,7 @@ grpc-stub = { group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
 protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf" }
 javax-annotation-api = { group = "javax.annotation", name = "javax.annotation-api", version.ref = "javax-annotation" }
 opentelemetry-proto = { group = "io.opentelemetry.proto", name = "opentelemetry-proto", version.ref = "otel-proto" }
+assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

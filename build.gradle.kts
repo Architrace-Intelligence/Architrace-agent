@@ -35,6 +35,7 @@ subprojects {
 
     dependencies {
         testImplementation(rootProject.libs.junit.jupiter)
+        testImplementation(rootProject.libs.assertj.core)
         testImplementation(rootProject.libs.mockito.core)
         testImplementation(rootProject.libs.mockito.junit.jupiter)
         testRuntimeOnly(rootProject.libs.junit.platform.launcher)
@@ -46,6 +47,15 @@ subprojects {
 
     tasks.named<JacocoReport>("jacocoTestReport") {
         dependsOn(tasks.named("test"))
+        classDirectories.setFrom(
+            files(
+                classDirectories.files.map {
+                    fileTree(it) {
+                        exclude("**/io/github/architrace/grpc/proto/**")
+                    }
+                }
+            )
+        )
         reports {
             xml.required.set(true)
             html.required.set(true)
@@ -54,26 +64,35 @@ subprojects {
 
     tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
         dependsOn(tasks.named("test"))
+        classDirectories.setFrom(
+            files(
+                classDirectories.files.map {
+                    fileTree(it) {
+                        exclude("**/io/github/architrace/grpc/proto/**")
+                    }
+                }
+            )
+        )
         violationRules {
             rule {
                 limit {
                     counter = "LINE"
                     value = "COVEREDRATIO"
-                    minimum = "0.70".toBigDecimal()
+                    minimum = "0.85".toBigDecimal()
                 }
             }
             rule {
                 limit {
                     counter = "BRANCH"
                     value = "COVEREDRATIO"
-                    minimum = "0.60".toBigDecimal()
+                    minimum = "0.85".toBigDecimal()
                 }
             }
             rule {
                 limit {
                     counter = "METHOD"
                     value = "COVEREDRATIO"
-                    minimum = "0.70".toBigDecimal()
+                    minimum = "0.85".toBigDecimal()
                 }
             }
         }
@@ -111,6 +130,7 @@ sonar {
         property("sonar.projectKey", "Architrace-Intelligence_Architrace-agent")
         property("sonar.organization", "architrace-intelligence")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.exclusions", "**/io/github/architrace/grpc/proto/**")
     }
 }
 

@@ -1,9 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.artifacts.VersionCatalogsExtension
 
 plugins {
     application
     alias(libs.plugins.shadow)
-    id("com.google.protobuf") version "0.9.4"
+    alias(libs.plugins.protobuf)
 }
 
 dependencies {
@@ -29,6 +30,8 @@ application {
     mainClass.set("io.github.architrace.MainApp")
 }
 
+val libsCatalog = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
+
 tasks.withType<JavaCompile> {
     options.compilerArgs.addAll(listOf(
         "-Aproject=${project.group}/${project.name}"
@@ -47,11 +50,11 @@ tasks.named<ShadowJar>("shadowJar") {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
+        artifact = "com.google.protobuf:protoc:${libsCatalog.findVersion("protobuf").get().requiredVersion}"
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}"
+            artifact = "io.grpc:protoc-gen-grpc-java:${libsCatalog.findVersion("grpc").get().requiredVersion}"
         }
     }
     generateProtoTasks {

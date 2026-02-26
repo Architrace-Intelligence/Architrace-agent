@@ -37,7 +37,6 @@ public class MainApp implements Runnable {
   }
 
   static int execute(String[] args) {
-
     CommandLine cmd = new CommandLine(new MainApp());
 
     cmd.setExecutionExceptionHandler((ex, commandLine, parseResult) -> {

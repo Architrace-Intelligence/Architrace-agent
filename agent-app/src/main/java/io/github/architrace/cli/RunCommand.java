@@ -19,6 +19,7 @@ import picocli.CommandLine.Option;
 public class RunCommand implements Runnable {
 
   private static final Logger log = LoggerFactory.getLogger(RunCommand.class);
+
   private final AgentRuntimeService runtimeService = new AgentRuntimeService();
 
   @Option(

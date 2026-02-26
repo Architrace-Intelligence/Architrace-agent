@@ -98,10 +98,6 @@ snyk monitor --all-projects
 ```
 - The `snyk security` badge is live and reads status from the Snyk project page for this repository.
 
-## Badge Data Sources
-- SonarCloud badges (`maintainability`, `lines of code`, `code quality`, `code coverage`, `code smells`) pull live measures from project key `Architrace-Intelligence_Architrace-agent`.
-- GitHub badges (`gradle pass`, `licence`) pull live workflow/license data from this repository.
-
 Run OTLP receiver integration test only:
 ```bash
 ./gradlew :agent-app:test --tests io.github.architrace.otlp.OtlpTraceReceiverServerIntegrationTest

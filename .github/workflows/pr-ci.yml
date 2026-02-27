@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-jacoco-report
-          path: api/build/reports/jacoco/
+          path: architrace-api/build/reports/jacoco/
 
       - name: Sonar (api scope)
         if: ${{ secrets.SONAR_TOKEN != '' }}
@@ -112,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: control-plane-jacoco-report
-          path: control-plane/build/reports/jacoco/
+          path: architrace-control-plane/build/reports/jacoco/
 
       - name: Sonar (control-plane scope)
         if: ${{ secrets.SONAR_TOKEN != '' }}
@@ -172,7 +172,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: all-modules-jacoco-report
-          path: build/reports/jacoco/
+          path: |
+            build/reports/jacoco/
+            **/build/reports/jacoco/
 
       - name: Sonar (all modules)
         if: ${{ secrets.SONAR_TOKEN != '' }}

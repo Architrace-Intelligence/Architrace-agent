@@ -227,14 +227,14 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build artifacts
-        run: ./gradlew --no-daemon build -x test :agent-app:shadowJar
+        run: ./gradlew --no-daemon build -x test :agent:shadowJar
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: architrace-artifacts
           path: |
-            agent-app/build/libs/*.jar
+            agent/build/libs/*.jar
             **/build/libs/*.jar
 
   native-image-docker:
@@ -332,10 +332,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build release fat jar
-        run: ./gradlew --no-daemon :agent-app:shadowJar
+        run: ./gradlew --no-daemon :agent:shadowJar
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
           files: |
-            agent-app/build/libs/agent-app-*-all.jar
+            agent/build/libs/agent-*-all.jar

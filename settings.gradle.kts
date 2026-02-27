@@ -1,3 +1,5 @@
 rootProject.name = "architrace"
 
-include("agent-app")
+include("api")
+include("agent")
+include("control-plane")
